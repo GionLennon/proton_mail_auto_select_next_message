@@ -92,7 +92,7 @@ console.log('Script is running');
 
     // Detect archive/delete keypress
     window.addEventListener('keydown', (e) => {
-        if ((e.key === 't' || e.key === 'e') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        if ((e.key === 't' || e.key === 'a') && !e.ctrlKey && !e.metaKey && !e.altKey) {
             captureCurrentMessage();
             shouldOpenNext = true;
         }

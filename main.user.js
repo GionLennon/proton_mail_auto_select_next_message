@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name ProtonMail - Auto Select Next Message
 // @namespace http://tampermonkey.net/
-// @version 1.0
+// @version 1.1
 // @description Automatically selects the next email in ProtonMail after archiving, deleting or spamming the current one.
 // @author tompos2
 // @modifiedby GionLennon
@@ -29,13 +29,18 @@ console.log('Script is running');
 
     // Cache the visible inbox list
     function cacheInbox() {
-        const items = document.querySelectorAll('[data-testid^="message-item:"]');
+        const items = document.querySelectorAll('[data-element-id][data-testid*="message-item"]');
         cachedList = [];
+
+        if (!items.length) {
+            console.warn('[AutoNext] No message items found for caching');
+            return;
+        }
 
         items.forEach(item => {
             const id = item.getAttribute('data-element-id') || '';
             // NEW - works across layouts
-            const subjectEl = item.querySelector('[data-testid="message-row:subject"]');
+            const subjectEl = item.querySelector('[data-testid$="subject"]');
             const subject = subjectEl?.textContent?.trim() || '';
             if (id && subject) {
                 cachedList.push({ id, subject, element: item });
@@ -49,7 +54,7 @@ console.log('Script is running');
     function captureCurrentMessage() {
         const subjectEl = document.querySelector('[data-testid="conversation-header:subject"] span');
         const subject = subjectEl?.textContent?.trim();
-        const article = document.querySelector('[data-testid^="message-view-"][data-message-id]');
+        const article = document.querySelector('[data-element-id][data-testid*="message-item"]');
         const id = article?.getAttribute('data-message-id');
 
         currentSubject = subject || null;

@@ -40,12 +40,12 @@ It is designed for temporary use by pasting directly into the browser's develope
     }
 
     function cacheInbox() {
-        const items = document.querySelectorAll('[data-testid^="message-item:"]');
+        const items = document.querySelectorAll('[data-element-id][data-testid*="message-item"]');
         cachedList = [];
 
         items.forEach(item => {
             const id = item.getAttribute('data-element-id') || '';
-            const subjectEl = item.querySelector('[data-testid="message-row:subject"]');
+            const subjectEl = item.querySelector('[data-testid$="subject"]');
             const subject = subjectEl?.textContent?.trim() || '';
             if (id && subject) {
                 cachedList.push({ id, subject, element: item });
@@ -68,7 +68,7 @@ It is designed for temporary use by pasting directly into the browser's develope
     }
 
     function openNextMessage() {
-        const items = Array.from(document.querySelectorAll('[data-testid^="message-item:"]'));
+        const items = Array.from(document.querySelectorAll('[data-element-id][data-testid*="message-item"]'));
 
         let index = cachedList.findIndex(item =>
             item.id === currentId || item.subject === currentSubject
@@ -167,12 +167,12 @@ It is designed for temporary use by pasting directly into the browser's develope
   }
 
   function cacheInbox() {
-    const items = document.querySelectorAll('[data-testid^="message-item:"]');
+    const items = document.querySelectorAll('[data-element-id][data-testid*="message-item"]');
     cachedList = [];
 
     items.forEach(item => {
       const id = item.getAttribute('data-element-id') || '';
-      const subjectEl = item.querySelector('[data-testid="message-row:subject"]');
+      const subjectEl = item.querySelector('[data-testid$="subject"]');
       const subject = subjectEl?.textContent?.trim() || '';
       if (id && subject) {
         cachedList.push({ id, subject, element: item });
@@ -195,7 +195,7 @@ It is designed for temporary use by pasting directly into the browser's develope
   }
 
   function openNextMessage() {
-    const items = Array.from(document.querySelectorAll('[data-testid^="message-item:"]'));
+    const items = Array.from(document.querySelectorAll('[data-element-id][data-testid*="message-item"]'));
 
     let index = cachedList.findIndex(item =>
       item.id === currentId || item.subject === currentSubject

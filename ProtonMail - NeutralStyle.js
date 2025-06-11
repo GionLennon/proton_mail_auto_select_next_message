@@ -1,6 +1,16 @@
-(function () {
-  'use strict';
+// ==UserScript==
+// @name ProtonMail - Show Full Dates
+// @namespace http://tampermonkey.net/
+// @version 1.0
+// @description Injects changes to the UI to make it look more minimalistic.
+// @author GionLennon
+// @match *://mail.proton.me/*
+// @grant none
+// ==/UserScript==
 
+(() => {
+  'use strict';
+  
   console.log('[NeutralTheme] Injecting Minimal-Style UI');
 
   const style = document.createElement('style');

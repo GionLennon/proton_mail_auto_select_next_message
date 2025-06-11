@@ -271,3 +271,221 @@ It is designed for temporary use by pasting directly into the browser's develope
   console.log('[ProtonHelper] Ready: Full dates + AutoNext are active.');
 })();
 ````
+---
+
+## Script with Date Replacement (AutoNext + Full Dates + Neutral Style)
+````js
+(() => {
+  console.log('[ProtonHelper] Script loaded');
+
+// --- Inject Neutral-Style Theme ---
+  const style = document.createElement('style');
+  style.textContent = `
+    .sidebar {
+      display: none !important;
+    }
+
+    nav.drawer-sidebar {
+      display: none !important;
+    }
+
+    .MainContainer, .main, .main-container {
+      margin-left: 0 !important;
+      padding-left: 1rem !important;
+    }
+
+    .header.ui-prominent {
+      background-color: #f9fafb !important;
+      color: #1f2937 !important;
+      border-bottom: 1px solid #d1d5db !important;
+    }
+
+    .header.ui-prominent svg,
+    .header.ui-prominent .button,
+    .header.ui-prominent .user-dropdown-text {
+      color: #1f2937 !important;
+      fill: #1f2937 !important;
+    }
+
+    .user-initials {
+      background-color: #d1d5db !important;
+      color: #111827 !important;
+    }
+
+    .searchbox {
+      background-color: #ffffff !important;
+      border-radius: 0.375rem !important;
+      padding: 0.25rem 0.5rem !important;
+    }
+
+    .input {
+      background-color: #f3f4f6 !important;
+      border: 1px solid #d1d5db !important;
+      border-radius: 0.375rem !important;
+    }
+
+    .input-element {
+      background-color: #f3f4f6 !important;
+      color: #1f2937 !important;
+    }
+
+    .input-adornment svg {
+      fill: #6b7280 !important;
+    }
+
+    .toolbar--heavy {
+      background-color: #f3f4f6 !important;
+      border-bottom: 1px solid #d1d5db !important;
+      color: #1f2937 !important;
+    }
+
+    .toolbar--heavy h2,
+    .toolbar--heavy button,
+    .toolbar--heavy svg {
+      color: #1f2937 !important;
+      fill: #1f2937 !important;
+    }
+
+    .toolbar--heavy .toolbar-button {
+      background-color: transparent !important;
+      border-radius: 0.375rem !important;
+    }
+
+    .toolbar--heavy .toolbar-button:hover {
+      background-color: #e5e7eb !important;
+    }
+  `;
+  document.head.appendChild(style);
+
+  // --- Date Replacement ---
+  const replaceShortDates = () => {
+    document.querySelectorAll('time[data-testid="item-date-simple"]').forEach(el => {
+      const parent = el.parentElement;
+      if (!parent) return;
+
+      const srOnly = [...parent.childNodes].find(
+        node => node.nodeType === 1 && node.classList.contains('sr-only')
+      );
+
+      if (srOnly && el.textContent !== srOnly.textContent) {
+        el.textContent = srOnly.textContent;
+      }
+    });
+  };
+
+  // --- AutoNext ---
+  let cachedList = [];
+  let currentId = null;
+  let currentSubject = null;
+  let shouldOpenNext = false;
+
+  function isFullscreenLayout() {
+    const item = document.querySelector('.item-container');
+    return item?.classList.contains('item-container--row');
+  }
+
+  function cacheInbox() {
+    const items = document.querySelectorAll('[data-element-id][data-testid*="message-item"]');
+    cachedList = [];
+
+    items.forEach(item => {
+      const id = item.getAttribute('data-element-id') || '';
+      const subjectEl = item.querySelector('[data-testid$="subject"]');
+      const subject = subjectEl?.textContent?.trim() || '';
+      if (id && subject) {
+        cachedList.push({ id, subject, element: item });
+      }
+    });
+
+    console.log(`[AutoNext] Cached ${cachedList.length} messages`);
+  }
+
+  function captureCurrentMessage() {
+    const subjectEl = document.querySelector('[data-testid="conversation-header:subject"] span');
+    const subject = subjectEl?.textContent?.trim();
+    const article = document.querySelector('[data-testid^="message-view-"][data-message-id]');
+    const id = article?.getAttribute('data-message-id');
+
+    currentSubject = subject || null;
+    currentId = id || null;
+
+    console.log(`[AutoNext] Tracking message – Subject: "${currentSubject}", ID: ${currentId}`);
+  }
+
+  function openNextMessage() {
+    const items = Array.from(document.querySelectorAll('[data-element-id][data-testid*="message-item"]'));
+
+    let index = cachedList.findIndex(item =>
+      item.id === currentId || item.subject === currentSubject
+    );
+
+    if (index === -1) {
+      console.warn('[AutoNext] Could not find current message in cache');
+      return;
+    }
+
+    const next = cachedList[index + 1];
+    if (!next) {
+      console.warn('[AutoNext] No next message in cache');
+      return;
+    }
+
+    console.log(`[AutoNext] Opening next message: "${next.subject}"`);
+
+    const nextLive = items.find(el =>
+      el.getAttribute('data-element-id') === next.id
+    );
+
+    if (nextLive) {
+      nextLive.click();
+    } else {
+      console.warn('[AutoNext] Could not find next message in live DOM');
+    }
+  }
+
+  const keyHandler = (e) => {
+    if ((e.key === 't' || e.key === 'a') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      captureCurrentMessage();
+      shouldOpenNext = true;
+    }
+  };
+
+  // --- Shared Observer ---
+  const observer = new MutationObserver(() => {
+    replaceShortDates();
+    if (shouldOpenNext) {
+      const delay = isFullscreenLayout() ? 500 : 300;
+      setTimeout(() => {
+        openNextMessage();
+        shouldOpenNext = false;
+        currentId = null;
+        currentSubject = null;
+      }, delay);
+    } else {
+      cacheInbox();
+    }
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  // Initial run
+  replaceShortDates();
+  cacheInbox();
+
+  window.addEventListener('keydown', keyHandler, true);
+  window.addEventListener('beforeunload', () => {
+    observer.disconnect();
+    window.removeEventListener('keydown', keyHandler, true);
+    console.log('[ProtonHelper] Cleaned up on page unload.');
+  });
+
+  // Manual stop function
+  window.stopProtonHelper = () => {
+    observer.disconnect();
+    window.removeEventListener('keydown', keyHandler, true);
+    console.log('[ProtonHelper] Stopped manually.');
+  };
+
+  console.log('[ProtonHelper] Ready: Full dates + AutoNext are active.');
+})();
+````

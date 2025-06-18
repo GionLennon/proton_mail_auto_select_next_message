@@ -40,7 +40,7 @@ To use this user script, you need to have the Tampermonkey browser extension ins
    - For Firefox: [Tampermonkey for Firefox](https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/)
 
 2. Install the user script:
-   - Click on this link: [ProtonMail: Auto Select Next Message](https://raw.githubusercontent.com/gionlennon/proton_mail_auto_select_next_message/master/main.user_enhanced_GL.js)
+   - Click on this link: [ProtonMail: Auto Select Next Message](https://raw.githubusercontent.com/gionlennon/proton_mail_auto_select_next_message/master/main.user.js)
    - Tampermonkey will detect the user script and open a new tab with the script's details.
    - Click on the "Install" button to install the script.
 

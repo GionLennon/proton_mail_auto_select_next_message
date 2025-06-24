@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name ProtonMail - Show Full Dates
+// @name ProtonMail - Neutral Style
 // @namespace http://tampermonkey.net/
 // @version 1.0
 // @description Injects changes to the UI to make it look more minimalistic.
